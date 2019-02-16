@@ -167,7 +167,7 @@ int playerWins(char * board, char player)
 int chooseSquare(char * board, char player, int choice)
 {
 	// each square can only be marked once
-	if (board[choice] == player1 || board[choice] == player2)
+	if (choice < 0 || choice > 8 || board[choice] == player1 || board[choice] == player2)
 	{
 		printf("\n%s\n", "!NOTICE: Choose from one of the open squares");
 
