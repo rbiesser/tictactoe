@@ -15,6 +15,7 @@
 */
 
 #include <stdio.h> // standard library for printf and scanf
+#include <string.h> // bring in functions to manipulate the board like a string
 
 // prototypes
 
@@ -48,40 +49,58 @@ int main()
 	// variable to track how may turns are left in this game
 	int openSquares = 9;
 
-	// keep alternating between player turns until one wins or there are no more squares left
-	while (openSquares > 0 && !playerWins(board, currentPlayer))
+	// variable for main app loop
+	char playAgain = 'y';
+
+	// keep playing until user exits
+	while (playAgain != 'n')
 	{
+		// reset game
+		strncpy(board, "123456789", 9); // board is a string which is an array of characters
+		openSquares = 9;
 
-		// next player
-		currentPlayer = (currentPlayer == player1) ? player2 : player1;
+		// currentPlayer stays the same from last game so it will alternate who starts
 
-		do // chooseSquare will make sure the player makes a valid move or gives them another chance.
+		// keep alternating between player turns until one wins or there are no more squares left
+		while (openSquares > 0 && !playerWins(board, currentPlayer))
 		{
-			// give notice of the current player
-			printf("\n%c to play...\n", currentPlayer);
 
-			// displaying the board is as easy as calling the printBoard function
-			// the board prints with the current state
-			printBoard(board);
+			// alternate between players
+			currentPlayer = (currentPlayer == player1) ? player2 : player1;
 
-			// prompt the user for input
-			printf("%s", "Choose a square on the board (1-9) ");
-			scanf("%d", &choice);
+			do // chooseSquare will make sure the player makes a valid move or gives them another chance.
+			{
+				// give notice of the current player
+				printf("\n%c to play...\n", currentPlayer);
 
-				// the array is zero based but the player selects 1-9
-		} while (!chooseSquare(board, currentPlayer, choice-1));
+				// displaying the board is as easy as calling the printBoard function
+				// the board prints with the current state
+				printBoard(board);
 
-		// decreasing the number of squares available after each turn
-		openSquares--;
-	}
+				// prompt the user for input
+				printf("%s", "Choose a square on the board (1-9) ");
+				scanf("%d", &choice);
 
-	// print the final game board
-	printBoard(board);
+					// the array is zero based but the player selects 1-9
+			} while (!chooseSquare(board, currentPlayer, choice-1));
 
-	// if a player didn't win last turn, we know the board ran out of squares
-	if (!playerWins(board, currentPlayer))
-	{
-		printf("\n%s\n", "This game is cat. =^_^= Play again.");
+			// decreasing the number of squares available after each turn
+			openSquares--;
+		}
+
+		// print the final game board
+		printBoard(board);
+
+		// if a player didn't win last turn, we know the board ran out of squares
+		if (!playerWins(board, currentPlayer))
+		{
+			printf("\n%s\n", "This game is cat. =^_^= Play again.");
+		}
+
+		// prompt to continue
+		printf("%s\n", "Play Again? (y/n) ");
+		scanf(" %c", &playAgain);
+
 	}
 
 	return 1;
