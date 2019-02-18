@@ -7,15 +7,54 @@
 
 	* Matches can be horizontal, vertical, or diagonal.
 
+	* The C language does some weird things and can be more difficult than other
+	scripting languages. This application presents easy solutions while exploring
+	the C language.
+
+	* The methods presented are a first step in using functions and passing variables
+	by reference. A cleaner solution may exist by creating the board object and the
+	player object.
+
 	---------------------------------------------------------------------------
 
 	* compile with gcc 
 	gcc tictactoe.c -o tictactoe
 
+	---------------------------------------------------------------------------
+
+	TODO
+	* computer player [complete]
+		* how many players? 0 1 2
+	* track stats: w/l turns
+	* how many game variations are there?
+	* will the starting player win every time?
+	* replace magic numbers with macro names
+
+	---------------------------------------------------------------------------
+
+	AI strategies
+		> do you want to allow choosing computer difficulty?
+		> randomize difficulty?
+		> can we build a strategy to win everytime?
+	* middle
+	* corners
+	* block
+	* random [complete]
+		> computer may occasionally make intelligent moves but will not purposefully
+			try to block a winning move.
+	* edges
+
+	---------------------------------------------------------------------------
+
+	Simulation
+	1234567 player 1 wins in 4 moves
+
 */
 
 #include <stdio.h> // standard library for printf and scanf
 #include <string.h> // bring in functions to manipulate the board like a string
+#include <stdlib.h> // for rand()
+#include <time.h>
 
 // prototypes
 
@@ -28,6 +67,9 @@ int chooseSquare(char * board, char player, int choice);
 /* We need a method to determine when a player has won */
 int playerWins(char * board, char player);
 
+/* copies the available squares on the board to the vision board */
+int readBoard(char * board, char * aiBoardVision);
+
 /* the players will either be an X or an O and represented as a macro */
 #define player1 'X'
 #define player2 'O'
@@ -37,6 +79,8 @@ int playerWins(char * board, char player);
 */
 int main()
 {
+	srand(time(0));
+
 	// we're going to use an array to represent the locations on our board
 	char board[9] = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
@@ -52,9 +96,51 @@ int main()
 	// variable for main app loop
 	char playAgain = 'y';
 
+	int gameMode; // 0 = 2 ai players, 1 = 1 human vs 1 ai, 2 = 2 human players
+
+	// we need a variable to distinguish a human player vs ai player
+	// might be easier to eventually create a player object
+	int player1Type =1; // 1 represents human player
+	int player2Type =1; // 0 = ai player
+	int currentPlayerType; // temp variable similar to currentPlayer
+
+	char aiBoardVision[10] = ""; // a look at how the computer sees the board
+						   // might could find a better name but we need some way to tell the
+						   // computer what squares are remaining
+						   // maybe replace openSquares and use string length instead of int
+
 	// keep playing until user exits
 	while (playAgain != 'n')
 	{
+		// select the players (game mode)
+		printf("%s", "Select a game mode:\n");
+		printf("%s", "0. Simulate play with 2 ai players\n");
+		printf("%s", "1. Play against the computer\n");
+		printf("%s", "2. Play against a friend\n");
+		scanf("%d", &gameMode);
+
+		switch(gameMode)
+		{
+			// letters translate as case 0 when expecting a digit
+			case 0:
+				player1Type = player2Type = 0;
+				printf("%s", "\nSimulation Mode\n");
+				break;
+			case 1: 
+				player1Type = 1;
+				player2Type = 0;
+				printf("%s", "\nPlaying against the computer\n");
+				break;
+			case 2:
+				player1Type = player2Type = 1; 
+				printf("%s", "\n2 Player Mode\n");
+				break;
+			// any other integer
+			default:
+				player1Type = player2Type = 0; 
+				printf("%s", "\nUnrecognized Selection :: Starting Demo Mode\n");
+		}
+
 		// reset game
 		strncpy(board, "123456789", 9); // board is a string which is an array of characters
 		openSquares = 9;
@@ -67,24 +153,72 @@ int main()
 
 			// alternate between players
 			currentPlayer = (currentPlayer == player1) ? player2 : player1;
+			currentPlayerType = (currentPlayer == player1) ? player2Type : player1Type;
 
-			do // chooseSquare will make sure the player makes a valid move or gives them another chance.
+
+			// give notice of the current player
+			printf("\n%c to play...\n", currentPlayer);
+
+			// human player enters choice from input
+			if (currentPlayerType == 1) // 1 = human player
 			{
-				// give notice of the current player
-				printf("\n%c to play...\n", currentPlayer);
+				do // chooseSquare will make sure the player makes a valid move or gives them another chance.
+				{
+					// give notice of the current player
+					// printf("\n%c to play...\n", currentPlayer);
 
-				// displaying the board is as easy as calling the printBoard function
-				// the board prints with the current state
-				printBoard(board);
+					// displaying the board is as easy as calling the printBoard function
+					// the board prints with the current state
+					printBoard(board);
 
-				// prompt the user for input
-				printf("%s", "Choose a square on the board (1-9) ");
-				scanf("%d", &choice);
+					// prompt the user for input
+					printf("%s", "Choose a square on the board (1-9) ");
+					scanf("%d", &choice);
 
-					// the array is zero based but the player selects 1-9
-			} while (!chooseSquare(board, currentPlayer, choice-1));
+						// the array is zero based but the player selects 1-9
+				} while (!chooseSquare(board, currentPlayer, choice-1));
+			}
+			else // ai player runs functions
+			{
+
+				int j;
+
+				// ai player needs to decide which square to choose
+				j = readBoard(board, aiBoardVision);
+
+				// debug size of aiBoardVision
+				// printf("sizeof: %d\n", j); 
+
+				// aiBoardVision contains the possible choices still left on the board
+				// printf("aiBoardVision: %s\n", aiBoardVision);
+
+				// the null pointer keeps moving but the whole array is still addressable
+				// printf("aiBoardVision: %c\n", aiBoardVision[8]);
+
+				/**
+
+					adding logic to change how the ai makes a choice should be done here
+				
+				*/
+
+				// random
+				choice = aiBoardVision[rand() % j] - '0'; // ascii characters for numbers
+														  // subtract zero to get int value 
+														  // https://stackoverflow.com/a/628766
+
+				// debug
+				// printf("currentPlayer: %c choice: %c\n", currentPlayer, choice);
+
+				// and uses the same call to chooseSquare as human player
+				chooseSquare(board, currentPlayer, choice-1);
+
+				// it can be helpful to let a human player know what the computer did
+				printf("Computer chose %d\n", choice);
+			}
 
 			// decreasing the number of squares available after each turn
+			// could be using readBoard method but keeping a running calculator might be more efficient
+			// although its replacing an extra variable with a function call
 			openSquares--;
 		}
 
@@ -106,6 +240,46 @@ int main()
 	return 1;
 
 	// end main
+}
+
+/**
+	@return int zize of aiBoardVision 
+	@param aiBoardVision containing squares remaining to be played 
+
+	C doesn't have a method like sizeof that tells the number of elements 
+	in an array, only the size of memory allocated. This function will
+	both return the size and the values in the array
+	https://www.quora.com/How-do-I-find-the-length-of-an-array-in-C
+
+
+	take care when passing strings
+	https://stackoverflow.com/a/25799033
+*/
+int readBoard(char * board, char * aiBoardVision)
+{
+	// reset vision board each time
+	// found that this only works with string functions and not array access
+	strcpy(aiBoardVision, "\0");
+	// printf("aiBoardVision: %s\n", aiBoardVision);
+	int i;
+	int j; // j is tracking the count of squares still remaining
+
+	j = 0;
+	// loop through the board and add to vision board when a square is still open
+	for (i = 0; i < 9; i++)
+	{
+		if (board[i] != player1 && board[i] != player2)
+		{	
+			aiBoardVision[j] =  board[i];
+			j++;
+		}
+
+		// C strings end with null character
+		// this is only useful when printing as a string but array elements past null are still accessible
+		aiBoardVision[j] = '\0';
+	}
+
+	return j; // return count
 }
 
 /**
@@ -168,12 +342,19 @@ int chooseSquare(char * board, char player, int choice)
 {
 	// each square can only be marked once
 	if (choice < 0 || choice > 8 || board[choice] == player1 || board[choice] == player2)
-	{
-		printf("\n%s\n", "!NOTICE: Choose from one of the open squares");
+	{	
+		// temp board to hold open squares
+		char aiBoardVision[10];
+		
+		// readBoard returns int, but setting to a value is not necesary
+		readBoard(board, aiBoardVision);
+
+		printf("\n!NOTICE: Choose from one of these open squares: %s\n", aiBoardVision);
 
 		return 0; // try again
 	}
 
+	// a valid choice has been made and gets set to the player's character
 	board[choice] = player;
 
 	return 1; // success
