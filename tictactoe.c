@@ -44,6 +44,9 @@
 			try to block a winning move.
 	* edges
 
+	https://www.quora.com/Is-there-a-way-to-never-lose-at-Tic-Tac-Toe
+		> discussion of strategies
+
 	---------------------------------------------------------------------------
 
 	Simulation
@@ -68,7 +71,9 @@ int chooseSquare(char * board, char player, int choice);
 int playerWins(char * board, char player);
 
 /* copies the available squares on the board to the vision board */
-int readBoard(char * board, char * aiBoardVision);
+int getOpenSquares(char * board, char * aiBoardVision);
+
+// int getChosenSquares(char * board, char * aiBoardVision, char player);
 
 /* the players will either be an X or an O and represented as a macro */
 #define player1 'X'
@@ -184,7 +189,7 @@ int main()
 				int j;
 
 				// ai player needs to decide which square to choose
-				j = readBoard(board, aiBoardVision);
+				j = getOpenSquares(board, aiBoardVision);
 
 				// debug size of aiBoardVision
 				// printf("sizeof: %d\n", j); 
@@ -217,7 +222,7 @@ int main()
 			}
 
 			// decreasing the number of squares available after each turn
-			// could be using readBoard method but keeping a running calculator might be more efficient
+			// could be using getOpenSquares method but keeping a running calculator might be more efficient
 			// although its replacing an extra variable with a function call
 			openSquares--;
 		}
@@ -255,7 +260,7 @@ int main()
 	take care when passing strings
 	https://stackoverflow.com/a/25799033
 */
-int readBoard(char * board, char * aiBoardVision)
+int getOpenSquares(char * board, char * aiBoardVision)
 {
 	// reset vision board each time
 	// found that this only works with string functions and not array access
@@ -346,8 +351,8 @@ int chooseSquare(char * board, char player, int choice)
 		// temp board to hold open squares
 		char aiBoardVision[10];
 		
-		// readBoard returns int, but setting to a value is not necesary
-		readBoard(board, aiBoardVision);
+		// getOpenSquares returns int, but setting to a value is not necesary
+		getOpenSquares(board, aiBoardVision);
 
 		printf("\n!NOTICE: Choose from one of these open squares: %s\n", aiBoardVision);
 
